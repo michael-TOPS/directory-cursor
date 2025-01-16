@@ -69,7 +69,8 @@ const Dashboard = () => {
     const fetchProfiles = async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*");
+        .select("*")
+        .neq('role', 'Neither');
 
       if (error) {
         console.error("Error fetching profiles:", error);
@@ -101,7 +102,14 @@ const Dashboard = () => {
 
     // Apply role filter
     if (filters.role) {
-      result = result.filter((profile) => profile.role === filters.role);
+      // Handle "Both" role in filtering
+      if (filters.role === "Both") {
+        result = result.filter((profile) => profile.role === "Both");
+      } else {
+        result = result.filter((profile) => 
+          profile.role === filters.role || profile.role === "Both"
+        );
+      }
     }
 
     // Apply states located filter

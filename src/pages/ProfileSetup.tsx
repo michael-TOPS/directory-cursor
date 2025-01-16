@@ -38,7 +38,7 @@ const formSchema = z.object({
   website: z.string().url("Please enter a valid URL").optional(),
   stateLocated: z.string().min(2, "Please select your state"),
   statesLicensed: z.array(z.string()).min(1, "Please select at least one state"),
-  role: z.enum(["Appraiser", "Umpire"]),
+  role: z.enum(["Appraiser", "Umpire", "Both", "Neither"]),
   avatarUrl: z.string().optional(),
 });
 
@@ -321,6 +321,14 @@ const ProfileSetup = () => {
                       <div className="flex items-center space-x-3">
                         <RadioGroupItem value="Umpire" id="umpire" />
                         <Label htmlFor="umpire">Umpire</Label>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value="Both" id="both" />
+                        <Label htmlFor="both">Both</Label>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value="Neither" id="neither" />
+                        <Label htmlFor="neither">Neither</Label>
                       </div>
                     </RadioGroup>
                   </FormControl>

@@ -1,8 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ImageUploadProps {
   value?: string;
@@ -12,6 +13,12 @@ interface ImageUploadProps {
 
 export const ImageUpload = ({ value, onChange, name }: ImageUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(value);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    setAvatarUrl(value);
+  }, [value]);
 
   const handleUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,18 +46,32 @@ export const ImageUpload = ({ value, onChange, name }: ImageUploadProps) => {
         .from('avatars')
         .getPublicUrl(filePath);
 
+      // Update the local state immediately for UI feedback
+      setAvatarUrl(publicUrl);
+      
+      // Call the onChange prop to update the parent form
       onChange(publicUrl);
+
+      toast({
+        title: "Photo uploaded",
+        description: "Your profile photo has been updated successfully.",
+      });
     } catch (error) {
       console.error('Error uploading image:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: "There was an error uploading your photo. Please try again.",
+      });
     } finally {
       setIsUploading(false);
     }
-  }, [onChange]);
+  }, [onChange, toast]);
 
   return (
     <div className="flex flex-col items-center gap-4">
       <Avatar className="w-24 h-24">
-        <AvatarImage src={value} alt="Profile photo" />
+        <AvatarImage src={avatarUrl} alt="Profile photo" />
         <AvatarFallback className="bg-gray-100">
           {name ? name.slice(0, 2).toUpperCase() : "UP"}
         </AvatarFallback>
@@ -86,4 +107,4 @@ export const ImageUpload = ({ value, onChange, name }: ImageUploadProps) => {
       </div>
     </div>
   );
-}; 
+} 

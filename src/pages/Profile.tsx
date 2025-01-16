@@ -28,18 +28,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { US_STATES } from "@/lib/constants";
+import { X } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().optional(),
-  mobilePhone: z.string().min(10, "Please enter a valid phone number"),
-  businessPhone: z.string().min(10, "Please enter a valid phone number"),
-  company: z.string().min(2, "Company name must be at least 2 characters"),
-  website: z.string().url("Please enter a valid URL").optional(),
-  stateLocated: z.string().min(2, "Please select your state"),
-  statesLicensed: z.array(z.string()).min(1, "Please select at least one state"),
-  role: z.enum(["Appraiser", "Umpire"]),
-  avatarUrl: z.string().optional(),
+  bio: z.string().optional(),
+  mobile_phone: z.string().optional(),
+  business_phone: z.string().optional(),
+  location: z.string().optional(),
+  licenses: z.array(z.string()).optional().default([]),
+  role: z.enum(["Appraiser", "Umpire", "Both", "Neither"]).optional(),
+  image_url: z.string().optional(),
+  specialties: z.array(z.string()).optional().default([]),
+  certifications: z.array(z.string()).optional().default([]),
+  website: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+  company: z.string().optional(),
 });
 
 const Profile = () => {
@@ -52,15 +55,17 @@ const Profile = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      description: "",
-      mobilePhone: "",
-      businessPhone: "",
-      company: "",
-      website: "",
-      stateLocated: "",
-      statesLicensed: [],
+      bio: "",
+      mobile_phone: "",
+      business_phone: "",
+      location: "",
+      licenses: [],
       role: "Appraiser",
-      avatarUrl: "",
+      image_url: "",
+      specialties: [],
+      certifications: [],
+      website: "",
+      company: "",
     },
   });
 
@@ -85,15 +90,17 @@ const Profile = () => {
         if (profile) {
           form.reset({
             name: profile.name || "",
-            description: profile.bio || "",
-            mobilePhone: profile.mobile_phone || "",
-            businessPhone: profile.business_phone || "",
-            company: profile.company || "",
-            website: profile.website || "",
-            stateLocated: profile.location || "",
-            statesLicensed: profile.licenses || [],
+            bio: profile.bio || "",
+            mobile_phone: profile.mobile_phone || "",
+            business_phone: profile.business_phone || "",
+            location: profile.location || "",
+            licenses: profile.licenses || [],
             role: profile.role || "Appraiser",
-            avatarUrl: profile.avatar_url || "",
+            image_url: profile.image_url || "",
+            specialties: profile.specialties || [],
+            certifications: profile.certifications || [],
+            website: profile.website || "",
+            company: profile.company || "",
           });
         }
       } catch (error) {
@@ -112,8 +119,8 @@ const Profile = () => {
   }, [navigate, form, toast]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsSubmitting(true);
     try {
+      setIsSubmitting(true);
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -122,32 +129,44 @@ const Profile = () => {
 
       const { error } = await supabase
         .from("profiles")
-        .upsert({
-          id: user.id,
+        .update({
           name: values.name,
-          bio: values.description,
-          mobile_phone: values.mobilePhone,
-          business_phone: values.businessPhone,
-          company: values.company,
-          website: values.website,
-          location: values.stateLocated,
-          licenses: values.statesLicensed,
+          bio: values.bio,
+          mobile_phone: values.mobile_phone,
+          business_phone: values.business_phone,
+          location: values.location,
+          licenses: values.licenses,
           role: values.role,
-          avatar_url: values.avatarUrl,
+          image_url: values.image_url,
+          specialties: values.specialties,
+          certifications: values.certifications,
+          website: values.website,
+          company: values.company,
           updated_at: new Date().toISOString(),
-        });
+        })
+        .eq("id", user?.id);
 
-      if (error) throw error;
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error updating profile",
+          description: error.message,
+        });
+        console.error("Error updating profile:", error);
+        return;
+      }
 
       toast({
-        title: "Profile Updated",
+        title: "Profile updated",
         description: "Your profile has been successfully updated.",
       });
+      navigate(-1);
     } catch (error) {
+      console.error("Error in profile update:", error);
       toast({
-        title: "Error",
-        description: "There was an error updating your profile. Please try again.",
         variant: "destructive",
+        title: "Error updating profile",
+        description: "An unexpected error occurred. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -165,7 +184,15 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 top-0"
+            onClick={() => navigate(-1)}
+          >
+            <X className="h-6 w-6" />
+          </Button>
           <h1 className="text-3xl font-bold text-gray-900">Edit Your Profile</h1>
           <p className="mt-2 text-gray-600">
             Update your profile information and settings.
@@ -177,7 +204,7 @@ const Profile = () => {
             <div className="flex justify-center mb-6">
               <FormField
                 control={form.control}
-                name="avatarUrl"
+                name="image_url"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
@@ -209,7 +236,7 @@ const Profile = () => {
 
             <FormField
               control={form.control}
-              name="description"
+              name="bio"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description (Show On Your Directory Profile)</FormLabel>
@@ -228,7 +255,37 @@ const Profile = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name="mobilePhone"
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your company name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://your-website.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="mobile_phone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Mobile Phone (Kept Private)</FormLabel>
@@ -242,7 +299,7 @@ const Profile = () => {
 
               <FormField
                 control={form.control}
-                name="businessPhone"
+                name="business_phone"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Business Phone (Made Public In Directory)</FormLabel>
@@ -255,106 +312,80 @@ const Profile = () => {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="company"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your company name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State You Are Located In</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a state" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {US_STATES.map((state) => (
+                          <SelectItem key={state} value={state}>
+                            {state}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="website"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://your-website.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="stateLocated"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>State You Are Located In</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a state" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {US_STATES.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
+              <FormField
+                control={form.control}
+                name="licenses"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>State(s) You Are Licensed In</FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        const currentValues = field.value || [];
+                        const newValues = currentValues.includes(value)
+                          ? currentValues.filter((v) => v !== value)
+                          : [...currentValues, value];
+                        field.onChange(newValues);
+                      }}
+                      defaultValue={field.value?.[0]}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select states" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {US_STATES.map((state) => (
+                          <SelectItem key={state} value={state}>
+                            {state}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {field.value?.map((state) => (
+                        <Badge
+                          key={state}
+                          variant="secondary"
+                          className="cursor-pointer"
+                          onClick={() => {
+                            field.onChange(field.value?.filter((s) => s !== state));
+                          }}
+                        >
+                          {state} ×
+                        </Badge>
                       ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="statesLicensed"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>State(s) You Are Licensed In</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      const currentValues = field.value || [];
-                      const newValues = currentValues.includes(value)
-                        ? currentValues.filter((v) => v !== value)
-                        : [...currentValues, value];
-                      field.onChange(newValues);
-                    }}
-                    defaultValue={field.value?.[0]}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select states" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {US_STATES.map((state) => (
-                        <SelectItem key={state} value={state}>
-                          {state}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {field.value?.map((state) => (
-                      <Badge
-                        key={state}
-                        variant="secondary"
-                        className="cursor-pointer"
-                        onClick={() => {
-                          field.onChange(field.value?.filter((s) => s !== state));
-                        }}
-                      >
-                        {state} ×
-                      </Badge>
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -376,6 +407,14 @@ const Profile = () => {
                         <RadioGroupItem value="Umpire" id="umpire" />
                         <Label htmlFor="umpire">Umpire</Label>
                       </div>
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value="Both" id="both" />
+                        <Label htmlFor="both">Both</Label>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <RadioGroupItem value="Neither" id="neither" />
+                        <Label htmlFor="neither">Neither</Label>
+                      </div>
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
@@ -383,13 +422,22 @@ const Profile = () => {
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         </Form>
       </div>
