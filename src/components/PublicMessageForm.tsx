@@ -27,9 +27,22 @@ export const PublicMessageForm = ({
     setIsSubmitting(true);
 
     try {
-      // Here you would typically send the message to your backend
-      // For now, we'll just simulate a success
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Store the message in Supabase
+      const { error } = await supabase
+        .from('messages')
+        .insert([
+          {
+            recipient_id: recipientId,
+            sender_name: name,
+            sender_email: email,
+            content: message,
+            is_public: true,
+            status: 'unread',
+            created_at: new Date().toISOString(),
+          }
+        ]);
+
+      if (error) throw error;
 
       toast({
         title: "Message sent!",
@@ -41,6 +54,7 @@ export const PublicMessageForm = ({
       setEmail("");
       setMessage("");
     } catch (error) {
+      console.error('Error sending message:', error);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",
@@ -53,30 +67,35 @@ export const PublicMessageForm = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
+      <div className="space-y-2">
         <Input
           placeholder="Your name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          className="w-full"
+          aria-label="Your name"
         />
       </div>
-      <div>
+      <div className="space-y-2">
         <Input
           type="email"
           placeholder="Your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          className="w-full"
+          aria-label="Your email"
         />
       </div>
-      <div>
+      <div className="space-y-2">
         <Textarea
           placeholder="Your message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
-          className="min-h-[100px]"
+          className="min-h-[100px] w-full"
+          aria-label="Your message"
         />
       </div>
       <Button

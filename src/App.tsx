@@ -1,15 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import Index from "@/pages/Index";
-import Auth from "@/pages/Auth";
-import Dashboard from "@/pages/Dashboard";
-import Profile from "@/pages/Profile";
-import Settings from "@/pages/Settings";
-import Messages from "@/pages/messages";
 import { useEffect, useState } from "react";
-import { supabase } from "./lib/supabase";
+import { supabase } from "@/lib/supabase";
 
-// Component to handle protected routes
+// Pages
+import Index from "@/pages/Index";
+import Profile from "@/pages/Profile";
+import Messages from "@/pages/messages";
+import Login from "@/pages/Login";
+
+// Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (isAuthenticated === null) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -47,30 +47,21 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes - No auth check needed */}
+        {/* Public Routes */}
         <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Auth />} />
-        <Route path="/profile/:id" element={<Profile />} />
+        <Route path="/login" element={<Login />} />
 
-        {/* Protected Routes - Wrapped with auth check */}
+        {/* Protected Routes */}
         <Route
-          path="/dashboard"
+          path="/profile"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Profile />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/messages"
+          path="/messages/:id"
           element={
             <ProtectedRoute>
               <Messages />

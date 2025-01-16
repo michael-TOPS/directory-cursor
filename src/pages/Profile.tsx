@@ -1,6 +1,8 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,8 +29,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { US_STATES } from "@/lib/constants";
 import { X } from "lucide-react";
+
+const US_STATES = [
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+];
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -75,15 +84,15 @@ const Profile = () => {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
-        navigate("/auth");
-        return;
-      }
+          navigate("/login");
+          return;
+        }
 
         const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("*")
+          .from("profiles")
+          .select("*")
           .eq("id", user.id)
-        .single();
+          .single();
 
         if (error) throw error;
 
@@ -129,7 +138,8 @@ const Profile = () => {
 
       const { error } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          id: user.id,
           name: values.name,
           bio: values.bio,
           mobile_phone: values.mobile_phone,
@@ -143,8 +153,7 @@ const Profile = () => {
           website: values.website,
           company: values.company,
           updated_at: new Date().toISOString(),
-        })
-        .eq("id", user?.id);
+        });
 
       if (error) {
         toast({
@@ -160,7 +169,7 @@ const Profile = () => {
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
       });
-      navigate(-1);
+      navigate('/');
     } catch (error) {
       console.error("Error in profile update:", error);
       toast({
@@ -189,7 +198,7 @@ const Profile = () => {
             variant="ghost"
             size="icon"
             className="absolute right-0 top-0"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
           >
             <X className="h-6 w-6" />
           </Button>
@@ -433,7 +442,7 @@ const Profile = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(-1)}
+                onClick={() => navigate('/')}
               >
                 Cancel
               </Button>

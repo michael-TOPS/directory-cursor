@@ -40,7 +40,7 @@ export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
     
     if (session) {
       // If authenticated, navigate to messages page
-      navigate(`/messages?recipient=${profile.id}`);
+      navigate(`/messages/${profile.id}`);
     } else {
       // If not authenticated, show the public message form
       setIsMessageModalOpen(true);

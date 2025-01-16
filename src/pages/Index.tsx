@@ -2,6 +2,7 @@
 
 import { SearchBar } from "@/components/SearchBar";
 import { ProfileCard } from "@/components/ProfileCard";
+import { ProfilePanel } from "@/components/ProfilePanel";
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -18,6 +19,8 @@ const MOCK_PROFILES = [
     role: "Appraiser",
     specialties: ["Residential", "Commercial"],
     bio: "Experienced appraiser with over 10 years in the industry",
+    certifications: ["Certified Residential Appraiser", "FHA Approved"],
+    licenses: ["NY State License #12345", "NJ State License #67890"],
   },
   {
     id: "2",
@@ -26,7 +29,9 @@ const MOCK_PROFILES = [
     rating: 4.9,
     role: "Both",
     specialties: ["Real Estate", "Equipment"],
-    bio: "Specializing in commercial and residential properties",
+    bio: "Specializing in commercial and residential properties with expertise in the Bay Area market. Experienced in both appraisal and umpire roles for complex cases.",
+    certifications: ["Certified General Appraiser", "Equipment Valuation Specialist"],
+    licenses: ["CA State License #54321"],
   },
   {
     id: "3",
@@ -35,7 +40,9 @@ const MOCK_PROFILES = [
     rating: 4.7,
     role: "Umpire",
     specialties: ["Insurance", "Property Damage"],
-    bio: "Expert in insurance claim disputes",
+    bio: "Expert in insurance claim disputes with a background in property damage assessment. Specializing in fair and efficient dispute resolution.",
+    certifications: ["Licensed Insurance Adjuster", "Certified Mediator"],
+    licenses: ["IL State License #98765", "IN State License #45678"],
   },
 ];
 
@@ -43,6 +50,9 @@ const Index = () => {
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState(MOCK_PROFILES);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState<(typeof MOCK_PROFILES)[0] | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
   useEffect(() => {
     // Simulate loading delay
@@ -72,7 +82,24 @@ const Index = () => {
   };
 
   const handleProfileClick = (profile: any) => {
-    navigate(`/profile/${profile.id}`);
+    setSelectedProfile(profile);
+    setIsPanelOpen(true);
+  };
+
+  const handlePanelClose = () => {
+    setIsPanelOpen(false);
+    // Optional: Clear selected profile after animation
+    setTimeout(() => setSelectedProfile(null), 300);
+  };
+
+  const handleMessageClick = async (profile: any) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      navigate(`/messages/${profile.id}`);
+    } else {
+      setIsMessageModalOpen(true);
+    }
   };
 
   return (
@@ -124,6 +151,14 @@ const Index = () => {
           </div>
         )}
       </div>
+
+      {/* Profile Panel */}
+      <ProfilePanel
+        profile={selectedProfile}
+        isOpen={isPanelOpen}
+        onClose={handlePanelClose}
+        onMessageClick={handleMessageClick}
+      />
     </div>
   );
 };
