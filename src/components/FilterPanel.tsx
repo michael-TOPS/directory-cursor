@@ -84,14 +84,14 @@ export const FilterPanel = ({ onFilterChange, className }: FilterPanelProps) => 
   };
 
   return (
-    <div className={`space-y-6 p-4 bg-white rounded-lg shadow-lg ${className}`}>
+    <div className={`space-y-6 p-4 bg-card rounded-lg ${className}`}>
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Filters</h3>
+        <h3 className="text-lg font-semibold text-foreground">Filters</h3>
         <Button
           variant="ghost"
           size="sm"
           onClick={clearFilters}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-muted-foreground hover:text-foreground"
         >
           <X className="h-4 w-4 mr-1" />
           Clear
@@ -100,7 +100,7 @@ export const FilterPanel = ({ onFilterChange, className }: FilterPanelProps) => 
 
       <div className="space-y-4">
         <div>
-          <h4 className="text-sm font-medium mb-2">Role</h4>
+          <h4 className="text-sm font-medium text-foreground mb-2">Role</h4>
           <RadioGroup
             onValueChange={handleRoleChange}
             value={filters.role || ""}
@@ -108,25 +108,25 @@ export const FilterPanel = ({ onFilterChange, className }: FilterPanelProps) => 
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="Appraiser" id="appraiser" />
-              <Label htmlFor="appraiser">Appraiser</Label>
+              <Label htmlFor="appraiser" className="text-foreground">Appraiser</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="Umpire" id="umpire" />
-              <Label htmlFor="umpire">Umpire</Label>
+              <Label htmlFor="umpire" className="text-foreground">Umpire</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="Both" id="both" />
-              <Label htmlFor="both">Both</Label>
+              <Label htmlFor="both" className="text-foreground">Both</Label>
             </div>
           </RadioGroup>
         </div>
 
         <div>
-          <h4 className="text-sm font-medium mb-2">States Located</h4>
+          <h4 className="text-sm font-medium text-foreground mb-2">States Located</h4>
           <Select
             onValueChange={handleStateLocatedChange}
           >
-            <SelectTrigger>
+            <SelectTrigger className="bg-background">
               <SelectValue placeholder="Select state" />
             </SelectTrigger>
             <SelectContent>
@@ -154,11 +154,11 @@ export const FilterPanel = ({ onFilterChange, className }: FilterPanelProps) => 
         </div>
 
         <div>
-          <h4 className="text-sm font-medium mb-2">States Licensed</h4>
+          <h4 className="text-sm font-medium text-foreground mb-2">States Licensed</h4>
           <Select
             onValueChange={handleStateLicensedChange}
           >
-            <SelectTrigger>
+            <SelectTrigger className="bg-background">
               <SelectValue placeholder="Select state" />
             </SelectTrigger>
             <SelectContent>

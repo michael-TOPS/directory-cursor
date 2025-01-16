@@ -17,13 +17,13 @@ export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
 
   return (
     <Card 
-      className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+      className="hover:bg-muted/50 transition-colors cursor-pointer"
       onClick={() => onClick(profile)}
     >
       <div className="p-4 flex items-center justify-between gap-4">
         {/* Left side - Avatar and main info */}
         <div className="flex items-center gap-4 min-w-0">
-          <Avatar className="w-16 h-16 border-2 border-white shadow-sm flex-shrink-0">
+          <Avatar className="w-16 h-16 border-2 border-background shadow-sm flex-shrink-0">
             <AvatarImage src={profile.image_url} alt={profile.name || "Profile"} />
             <AvatarFallback className="bg-primary/10 text-primary font-medium text-xl">
               {initials}
@@ -32,7 +32,7 @@ export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
           
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-blue-600 font-medium">
+              <span className="text-primary font-medium">
                 ({profile.rating?.toFixed(1) || "0.0"})
               </span>
               <div className="flex items-center">
@@ -42,18 +42,18 @@ export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
                     className={`h-4 w-4 ${
                       i < Math.floor(profile.rating || 0)
                         ? "fill-yellow-400 stroke-yellow-400"
-                        : "fill-gray-200 stroke-gray-200"
+                        : "fill-muted stroke-muted"
                     }`}
                   />
                 ))}
               </div>
             </div>
             
-            <h3 className="text-xl font-semibold text-gray-900 truncate mb-1">
+            <h3 className="text-xl font-semibold text-foreground truncate mb-1">
               {profile.name || "Anonymous"}
             </h3>
             
-            <div className="text-sm text-gray-600 truncate">
+            <div className="text-sm text-muted-foreground truncate">
               {profile.company || "Independent Professional"}
             </div>
           </div>
@@ -61,18 +61,18 @@ export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
 
         {/* Right side - Role and state info */}
         <div className="flex-shrink-0 text-sm space-y-1 text-right">
-          <div className="font-medium text-gray-900">
+          <div className="font-medium text-foreground">
             {displayRole}
           </div>
-          <div className="text-gray-600">
+          <div className="text-muted-foreground">
             State Located: {profile.location || "N/A"}
           </div>
-          <div className="text-gray-600">
+          <div className="text-muted-foreground">
             State(s) Licensed: {profile.licenses?.join(", ") || "N/A"}
           </div>
         </div>
 
-        <ChevronRight className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" />
+        <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-2" />
       </div>
     </Card>
   );

@@ -175,14 +175,14 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">Loading profile...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center text-foreground">Loading profile...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8 relative">
           <Button
@@ -193,14 +193,14 @@ const Profile = () => {
           >
             <X className="h-6 w-6" />
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Your Profile</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">Edit Your Profile</h1>
+          <p className="mt-2 text-muted-foreground">
             Update your profile information and settings.
           </p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-white p-8 rounded-lg shadow">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-card p-8 rounded-lg shadow">
             <div className="flex justify-center mb-6">
               <FormField
                 control={form.control}

@@ -19,11 +19,11 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
 
   return (
     <div className="relative w-full max-w-xl mx-auto">
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
       <Input
         type="text"
         placeholder="Search by name, location, or expertise..."
-        className="pl-10 h-12 bg-white shadow-lg"
+        className="pl-10 h-12 bg-card shadow-lg"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
