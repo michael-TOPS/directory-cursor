@@ -241,18 +241,22 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="py-8">
-          <h1 className="text-3xl font-bold text-gray-900 text-center mb-4">
+      <div className="bg-blue-600 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h1 className="text-3xl font-bold text-white text-center">
             Insurance Appraiser Directory
           </h1>
         </div>
-        <div className="py-4 flex justify-between items-center">
-          <div className="flex-1">
-            <SearchBar onSearch={handleSearch} />
-          </div>
-          <div className="ml-4">
-            <UserMenu />
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="py-6">
+          <div className="flex justify-between items-center">
+            <div className="flex-1">
+              <SearchBar onSearch={handleSearch} />
+            </div>
+            <div className="ml-4">
+              <UserMenu />
+            </div>
           </div>
         </div>
         <ResizablePanelGroup
@@ -273,7 +277,7 @@ const Dashboard = () => {
               {loading ? (
                 <div className="text-center">Loading profiles...</div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {filteredProfiles.map((profile) => (
                     <ProfileCard
                       key={profile.id}
