@@ -94,9 +94,43 @@ const Profile = () => {
           .eq("id", user.id)
           .single();
 
-        if (error) throw error;
+        if (error && error.code === 'PGRST116') {
+          // Profile doesn't exist, create a new one with default values
+          const { data: newProfile, error: createError } = await supabase
+            .from("profiles")
+            .insert([
+              {
+                id: user.id,
+                name: "",
+                role: "Appraiser",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }
+            ])
+            .select()
+            .single();
 
-        if (profile) {
+          if (createError) throw createError;
+          
+          if (newProfile) {
+            form.reset({
+              name: "",
+              bio: "",
+              mobile_phone: "",
+              business_phone: "",
+              location: "",
+              licenses: [],
+              role: "Appraiser",
+              image_url: "",
+              specialties: [],
+              certifications: [],
+              website: "",
+              company: "",
+            });
+          }
+        } else if (error) {
+          throw error;
+        } else if (profile) {
           form.reset({
             name: profile.name || "",
             bio: profile.bio || "",

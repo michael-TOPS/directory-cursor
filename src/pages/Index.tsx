@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { MessageModal } from "@/components/MessageModal";
 
 // Mock data for development
 const MOCK_PROFILES = [
@@ -53,6 +54,7 @@ const Index = () => {
   const [selectedProfile, setSelectedProfile] = useState<(typeof MOCK_PROFILES)[0] | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [messageRecipient, setMessageRecipient] = useState<(typeof MOCK_PROFILES)[0] | null>(null);
 
   useEffect(() => {
     // Simulate loading delay
@@ -92,12 +94,14 @@ const Index = () => {
     setTimeout(() => setSelectedProfile(null), 300);
   };
 
-  const handleMessageClick = async (profile: any) => {
+  const handleMessageClick = async (profile: any, e?: React.MouseEvent) => {
+    e?.stopPropagation(); // Prevent card click event if event exists
     const { data: { session } } = await supabase.auth.getSession();
     
     if (session) {
       navigate(`/messages/${profile.id}`);
     } else {
+      setMessageRecipient(profile);
       setIsMessageModalOpen(true);
     }
   };
@@ -141,6 +145,7 @@ const Index = () => {
                 key={profile.id}
                 profile={profile}
                 onClick={handleProfileClick}
+                onMessageClick={(e) => handleMessageClick(profile, e)}
               />
             ))}
             {profiles.length === 0 && (
@@ -152,13 +157,26 @@ const Index = () => {
         )}
       </div>
 
-      {/* Profile Panel */}
-      <ProfilePanel
-        profile={selectedProfile}
-        isOpen={isPanelOpen}
-        onClose={handlePanelClose}
-        onMessageClick={handleMessageClick}
-      />
+      {selectedProfile && (
+        <ProfilePanel
+          profile={selectedProfile}
+          isOpen={isPanelOpen}
+          onClose={handlePanelClose}
+          onMessageClick={handleMessageClick}
+        />
+      )}
+
+      {messageRecipient && (
+        <MessageModal
+          isOpen={isMessageModalOpen}
+          onClose={() => {
+            setIsMessageModalOpen(false);
+            setMessageRecipient(null);
+          }}
+          recipientId={messageRecipient.id}
+          recipientName={messageRecipient.name}
+        />
+      )}
     </div>
   );
 };
