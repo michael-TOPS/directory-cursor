@@ -23,6 +23,163 @@ import {
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
+const DUMMY_PROFILES: Profile[] = [
+  {
+    id: 'dummy1',
+    name: 'Sarah Johnson',
+    role: 'Both',
+    location: 'CA',
+    image_url: '',
+    rating: 4.8,
+    specialties: ['Commercial', 'Residential'],
+    licenses: ['CA', 'NV', 'OR'],
+    bio: 'Experienced appraiser with 15+ years in commercial and residential properties.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['CRP', 'SRA'],
+  },
+  {
+    id: 'dummy2',
+    name: 'Michael Chen',
+    role: 'Appraiser',
+    location: 'WA',
+    image_url: '',
+    rating: 4.9,
+    specialties: ['Luxury Homes', 'Waterfront'],
+    licenses: ['WA', 'OR'],
+    bio: 'Specializing in luxury and waterfront properties in the Pacific Northwest.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['CRP'],
+  },
+  {
+    id: 'dummy3',
+    name: 'Emily Rodriguez',
+    role: 'Umpire',
+    location: 'TX',
+    image_url: '',
+    rating: 4.7,
+    specialties: ['Dispute Resolution', 'Commercial'],
+    licenses: ['TX', 'NM', 'AZ'],
+    bio: 'Expert in resolving complex property disputes and commercial valuations.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['CPPA'],
+  },
+  {
+    id: 'dummy4',
+    name: 'David Thompson',
+    role: 'Both',
+    location: 'FL',
+    image_url: '',
+    rating: 4.6,
+    specialties: ['Hurricane Damage', 'Coastal Properties'],
+    licenses: ['FL', 'GA', 'SC'],
+    bio: 'Specialized experience in hurricane damage assessment and coastal properties.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['CRP', 'CPPA'],
+  },
+  {
+    id: 'dummy5',
+    name: 'Lisa Martinez',
+    role: 'Appraiser',
+    location: 'AZ',
+    image_url: '',
+    rating: 4.9,
+    specialties: ['Desert Properties', 'New Construction'],
+    licenses: ['AZ', 'NV'],
+    bio: 'Expert in desert property valuation and new construction assessment.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['SRA'],
+  },
+  {
+    id: 'dummy6',
+    name: 'James Wilson',
+    role: 'Both',
+    location: 'NY',
+    image_url: '',
+    rating: 4.8,
+    specialties: ['Urban Properties', 'Historic Buildings'],
+    licenses: ['NY', 'NJ', 'CT'],
+    bio: 'Specializing in urban property valuation and historic building assessment.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['CRP', 'SRA'],
+  },
+  {
+    id: 'dummy7',
+    name: 'Patricia Brown',
+    role: 'Umpire',
+    location: 'IL',
+    image_url: '',
+    rating: 4.7,
+    specialties: ['Dispute Resolution', 'Commercial'],
+    licenses: ['IL', 'IN', 'WI'],
+    bio: 'Experienced in mediating complex property disputes in the Midwest.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['CPPA'],
+  },
+  {
+    id: 'dummy8',
+    name: 'Robert Kim',
+    role: 'Appraiser',
+    location: 'MA',
+    image_url: '',
+    rating: 4.9,
+    specialties: ['Historic Homes', 'Coastal'],
+    licenses: ['MA', 'RI', 'NH'],
+    bio: 'Expert in New England historic homes and coastal property valuation.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['CRP'],
+  },
+  {
+    id: 'dummy9',
+    name: 'Jennifer Taylor',
+    role: 'Both',
+    location: 'CO',
+    image_url: '',
+    rating: 4.8,
+    specialties: ['Mountain Properties', 'Luxury Homes'],
+    licenses: ['CO', 'UT', 'WY'],
+    bio: 'Specialized in mountain property and luxury home valuations.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['CRP', 'CPPA'],
+  },
+  {
+    id: 'dummy10',
+    name: 'William Garcia',
+    role: 'Appraiser',
+    location: 'NV',
+    image_url: '',
+    rating: 4.6,
+    specialties: ['Commercial', 'Land'],
+    licenses: ['NV', 'UT'],
+    bio: 'Expert in commercial property and land valuations in the Mountain West.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['SRA'],
+  },
+  {
+    id: 'dummy11',
+    name: 'Amanda White',
+    role: 'Both',
+    location: 'SC',
+    image_url: '',
+    rating: 4.7,
+    specialties: ['Coastal', 'Resort Properties'],
+    licenses: ['SC', 'NC', 'GA'],
+    bio: 'Specializing in coastal and resort property valuations.',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    certifications: ['CRP', 'SRA'],
+  }
+];
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -67,19 +224,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchProfiles = async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .neq('role', 'Neither');
-
-      if (error) {
-        console.error("Error fetching profiles:", error);
-      } else {
-        setProfiles(data || []);
-        setFilteredProfiles(data || []);
-      }
+      // For testing, we'll use dummy data
+      setProfiles(DUMMY_PROFILES);
+      setFilteredProfiles(DUMMY_PROFILES);
       setLoading(false);
-      // Set resize complete after initial load
       setIsResizeComplete(true);
     };
 
@@ -277,13 +425,14 @@ const Dashboard = () => {
               {loading ? (
                 <div className="text-center">Loading profiles...</div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="divide-y divide-gray-200">
                   {filteredProfiles.map((profile) => (
-                    <ProfileCard
-                      key={profile.id}
-                      profile={profile}
-                      onClick={handleProfileClick}
-                    />
+                    <div key={profile.id} className="py-4 first:pt-0 last:pb-0">
+                      <ProfileCard
+                        profile={profile}
+                        onClick={handleProfileClick}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
