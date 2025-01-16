@@ -24,20 +24,46 @@ export const ImageUpload = ({ value, onChange, name }: ImageUploadProps) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: "Please upload a JPG or PNG image file.",
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB.",
+      });
+      return;
+    }
+
     try {
       setIsUploading(true);
 
       // Create a unique file name
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.type === 'image/jpeg' ? 'jpg' : 'png';
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `profile-photos/${fileName}`;
+      const filePath = `${fileName}`;  // Simplified path
 
       // Upload the file to Supabase Storage
       const { error: uploadError, data } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true  // Changed to true to allow overwrites
+        });
 
       if (uploadError) {
+        console.error('Supabase upload error:', uploadError);  // Detailed error logging
         throw uploadError;
       }
 
@@ -61,7 +87,7 @@ export const ImageUpload = ({ value, onChange, name }: ImageUploadProps) => {
       toast({
         variant: "destructive",
         title: "Upload failed",
-        description: "There was an error uploading your photo. Please try again.",
+        description: error instanceof Error ? `Error: ${error.message}` : "There was an error uploading your photo. Please try again.",
       });
     } finally {
       setIsUploading(false);
@@ -79,7 +105,7 @@ export const ImageUpload = ({ value, onChange, name }: ImageUploadProps) => {
       <div className="relative">
         <input
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png"
           className="hidden"
           id="imageUpload"
           onChange={handleUpload}
@@ -100,7 +126,7 @@ export const ImageUpload = ({ value, onChange, name }: ImageUploadProps) => {
           ) : (
             <>
               <Camera className="h-4 w-4 mr-2" />
-              Upload Photo
+              Upload Photo (JPG/PNG)
             </>
           )}
         </Button>
