@@ -75,15 +75,15 @@ const Profile = () => {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
-          navigate("/auth");
-          return;
-        }
+        navigate("/auth");
+        return;
+      }
 
         const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("*")
+        .from("profiles")
+        .select("*")
           .eq("id", user.id)
-          .single();
+        .single();
 
         if (error) throw error;
 

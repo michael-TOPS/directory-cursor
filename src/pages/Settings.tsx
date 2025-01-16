@@ -46,6 +46,7 @@ const Settings = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [pendingTheme, setPendingTheme] = useState<"light" | "dark">("light");
   const [membershipType, setMembershipType] = useState<'free' | 'pro' | 'vip'>('free');
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -73,8 +74,8 @@ const Settings = () => {
           setEmailNotifications(profile.email_notifications ?? true);
           setProfileVisibility(profile.profile_visibility ?? true);
           setIsDarkMode(profile.dark_mode ?? false);
+          setPendingTheme(profile.dark_mode ? "dark" : "light");
           setMembershipType(profile.membership_type || 'free');
-          setTheme(profile.dark_mode ? "dark" : "light");
         }
       } catch (error) {
         console.error("Error loading settings:", error);
@@ -89,7 +90,7 @@ const Settings = () => {
     };
 
     loadSettings();
-  }, [navigate, toast, setTheme]);
+  }, [navigate, toast]);
 
   const handleSaveSettings = async () => {
     try {
@@ -108,8 +109,8 @@ const Settings = () => {
 
       if (error) throw error;
 
-      // Only update the theme in localStorage after successful save
-      setTheme(isDarkMode ? "dark" : "light");
+      // Update the theme in localStorage and context after successful save
+      setTheme(pendingTheme);
 
       toast({
         title: "Settings saved",
@@ -122,6 +123,8 @@ const Settings = () => {
         title: "Error",
         description: "Failed to save settings. Please try again.",
       });
+      // Revert theme on error
+      setTheme(isDarkMode ? "dark" : "light");
     }
   };
 
@@ -316,6 +319,7 @@ const Settings = () => {
                     checked={isDarkMode}
                     onCheckedChange={(checked) => {
                       setIsDarkMode(checked);
+                      setPendingTheme(checked ? "dark" : "light");
                       // Preview the theme change immediately
                       setTheme(checked ? "dark" : "light");
                     }}

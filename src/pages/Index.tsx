@@ -1,94 +1,89 @@
+"use client";
+
 import { SearchBar } from "@/components/SearchBar";
 import { ProfileCard } from "@/components/ProfileCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import type { Database } from "@/integrations/supabase/types";
+import { supabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-
-// Mock data for initial display
-const MOCK_PROFILES: Profile[] = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    image_url: "/placeholder.svg",
-    location: "New York, NY",
-    rating: 4.8,
-    role: "Appraiser",
-    specialties: ["Residential", "Commercial", "Industrial"],
-    bio: "Experienced appraiser with over 10 years in the industry",
-    certifications: ["CRA", "SRA"],
-    licenses: ["NY-123456", "NJ-789012"],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    name: "Michael Chen",
-    image_url: "/placeholder.svg",
-    location: "San Francisco, CA",
-    rating: 4.9,
-    role: "Both",
-    specialties: ["Real Estate", "Equipment", "Business Valuation"],
-    bio: "Specializing in commercial and residential properties",
-    certifications: ["MAI", "AI-GRS"],
-    licenses: ["CA-456789", "OR-234567"],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    name: "David Williams",
-    image_url: "/placeholder.svg",
-    location: "Chicago, IL",
-    rating: 4.7,
-    role: "Umpire",
-    specialties: ["Insurance", "Property Damage", "Liability"],
-    bio: "Expert in insurance claim disputes and property damage assessment",
-    certifications: ["CPCU", "AIC"],
-    licenses: ["IL-345678", "WI-901234"],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    name: "Emily Rodriguez",
-    image_url: "/placeholder.svg",
-    location: "Miami, FL",
-    rating: 4.9,
-    role: "Appraiser",
-    specialties: ["Residential", "Luxury Properties"],
-    bio: "Luxury property specialist with extensive market knowledge",
-    certifications: ["CRA", "CREA"],
-    licenses: ["FL-567890"],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+interface Profile {
+  id: string;
+  name: string;
+  image_url?: string;
+  location?: string;
+  rating?: number;
+  role?: string;
+  specialties?: string[];
+  bio?: string;
+  certifications?: string[];
+  licenses?: string[];
+}
 
 const Index = () => {
-  const [profiles, setProfiles] = useState<Profile[]>(MOCK_PROFILES);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleSearch = (term: string) => {
-    if (!term.trim()) {
-      setProfiles(MOCK_PROFILES);
-      return;
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setProfiles(data || []);
+      } catch (error) {
+        console.error('Error fetching profiles:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load profiles. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, [toast]);
+
+  const handleSearch = async (term: string) => {
+    setIsLoading(true);
+    try {
+      let query = supabase.from('profiles').select('*');
+
+      if (term) {
+        query = query.or(
+          `name.ilike.%${term}%,` +
+          `location.ilike.%${term}%,` +
+          `role.ilike.%${term}%,` +
+          `specialties.cs.{${term}},` +
+          `bio.ilike.%${term}%`
+        );
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setProfiles(data || []);
+    } catch (error) {
+      console.error('Error searching profiles:', error);
+      toast({
+        title: "Error",
+        description: "Failed to search profiles. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    const filtered = MOCK_PROFILES.filter((profile) =>
-      Object.values(profile).some((value) =>
-        String(value).toLowerCase().includes(term.toLowerCase())
-      )
-    );
-    setProfiles(filtered);
   };
 
   const handleProfileClick = (profile: Profile) => {
-    toast({
-      title: "Coming Soon",
-      description: "Profile details will be available soon!",
-    });
+    navigate(`/profile/${profile.id}`);
   };
 
   return (
@@ -106,15 +101,26 @@ const Index = () => {
 
       {/* Directory Grid */}
       <div className="container pb-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {profiles.map((profile) => (
-            <ProfileCard
-              key={profile.id}
-              profile={profile}
-              onClick={handleProfileClick}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center min-h-[200px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {profiles.map((profile) => (
+              <ProfileCard
+                key={profile.id}
+                profile={profile}
+                onClick={handleProfileClick}
+              />
+            ))}
+            {profiles.length === 0 && (
+              <div className="col-span-full text-center py-8 text-gray-500">
+                No profiles found. Try adjusting your search.
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

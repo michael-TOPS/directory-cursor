@@ -1,10 +1,26 @@
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Star, ChevronRight } from "lucide-react";
-import type { Database } from "@/integrations/supabase/types";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+"use client";
 
-type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+import { useState } from "react";
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { MessageCircle } from "lucide-react";
+import { MessageModal } from "./MessageModal";
+import { supabase } from "@/lib/supabase";
+import { useNavigate } from "react-router-dom";
+
+interface Profile {
+  id: string;
+  name: string;
+  image_url?: string;
+  location?: string;
+  rating?: number;
+  role?: string;
+  specialties?: string[];
+  bio?: string;
+  certifications?: string[];
+  licenses?: string[];
+}
 
 interface ProfileCardProps {
   profile: Profile;
@@ -12,68 +28,93 @@ interface ProfileCardProps {
 }
 
 export const ProfileCard = ({ profile, onClick }: ProfileCardProps) => {
-  const displayRole = profile.role === "Both" ? "Appraiser | Umpire" : profile.role || "Appraiser";
-  const initials = profile.name?.split(' ').map(n => n[0]).join('').toUpperCase() || "AN";
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  const navigate = useNavigate();
+
+  // Check if user is authenticated
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setCurrentUser({ id: session.user.id });
+      // If authenticated, navigate to messages page
+      navigate(`/messages?recipient=${profile.id}`);
+    } else {
+      // If not authenticated, show the public message form
+      setIsMessageModalOpen(true);
+    }
+  };
+
+  const handleMessageClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click event
+    checkAuth();
+  };
 
   return (
-    <Card 
-      className="hover:bg-muted/50 transition-colors cursor-pointer"
-      onClick={() => onClick(profile)}
-    >
-      <div className="p-4 flex items-center justify-between gap-4">
-        {/* Left side - Avatar and main info */}
-        <div className="flex items-center gap-4 min-w-0">
-          <Avatar className="w-16 h-16 border-2 border-background shadow-sm flex-shrink-0">
-            <AvatarImage src={profile.image_url} alt={profile.name || "Profile"} />
-            <AvatarFallback className="bg-primary/10 text-primary font-medium text-xl">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-primary font-medium">
-                ({profile.rating?.toFixed(1) || "0.0"})
-              </span>
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-4 w-4 ${
-                      i < Math.floor(profile.rating || 0)
-                        ? "fill-yellow-400 stroke-yellow-400"
-                        : "fill-muted stroke-muted"
-                    }`}
-                  />
-                ))}
-              </div>
+    <>
+      <Card
+        onClick={() => onClick(profile)}
+        className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      >
+        <div className="aspect-square relative">
+          <img
+            src={profile.image_url || "/placeholder.svg"}
+            alt={profile.name}
+            className="w-full h-full object-cover"
+          />
+          {profile.rating && (
+            <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded-full text-sm font-medium">
+              ⭐️ {profile.rating}
             </div>
-            
-            <h3 className="text-xl font-semibold text-foreground truncate mb-1">
-              {profile.name || "Anonymous"}
-            </h3>
-            
-            <div className="text-sm text-muted-foreground truncate">
-              {profile.company || "Independent Professional"}
+          )}
+        </div>
+        
+        <div className="p-4">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h3 className="font-semibold text-lg">{profile.name}</h3>
+              {profile.location && (
+                <p className="text-sm text-gray-500">{profile.location}</p>
+              )}
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleMessageClick}
+              className="mt-[-4px]"
+            >
+              <MessageCircle className="h-5 w-5" />
+            </Button>
           </div>
-        </div>
 
-        {/* Right side - Role and state info */}
-        <div className="flex-shrink-0 text-sm space-y-1 text-right">
-          <div className="font-medium text-foreground">
-            {displayRole}
-          </div>
-          <div className="text-muted-foreground">
-            State Located: {profile.location || "N/A"}
-          </div>
-          <div className="text-muted-foreground">
-            State(s) Licensed: {profile.licenses?.join(", ") || "N/A"}
-          </div>
-        </div>
+          {profile.role && (
+            <Badge variant="secondary" className="mb-2">
+              {profile.role}
+            </Badge>
+          )}
 
-        <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-2" />
-      </div>
-    </Card>
+          {profile.specialties && profile.specialties.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {profile.specialties.map((specialty) => (
+                <Badge key={specialty} variant="outline" className="text-xs">
+                  {specialty}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {profile.bio && (
+            <p className="text-sm text-gray-600 line-clamp-2">{profile.bio}</p>
+          )}
+        </div>
+      </Card>
+
+      <MessageModal
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        recipientId={profile.id}
+        recipientName={profile.name}
+      />
+    </>
   );
 };
