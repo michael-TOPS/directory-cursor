@@ -14,7 +14,19 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_IN" && session) {
-          navigate("/dashboard");
+          // Check if user has a profile
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .single();
+
+          // If no profile exists, redirect to profile setup
+          if (!profile) {
+            navigate("/profile-setup");
+          } else {
+            navigate("/dashboard");
+          }
         }
       }
     );

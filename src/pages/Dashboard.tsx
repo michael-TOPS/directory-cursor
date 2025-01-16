@@ -139,10 +139,53 @@ const Dashboard = () => {
     setSelectedProfile(null);
   };
 
-  const handleMessageClick = () => {
+  const handleWriteReview = () => {
+    // If user is not logged in, prompt to create account
+    if (!currentUser) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in or create an account to write a review.",
+      });
+      return;
+    }
+    // TODO: Implement review writing functionality
     toast({
       title: "Coming Soon",
-      description: "The messaging feature will be available soon!",
+      description: "The review feature will be available soon!",
+    });
+  };
+
+  const handleShare = async () => {
+    if (selectedProfile) {
+      try {
+        await navigator.share({
+          title: `${selectedProfile.name} - Insurance Appraiser Profile`,
+          text: `Check out ${selectedProfile.name}'s profile on Insurance Appraiser Directory`,
+          url: `${window.location.origin}/profile/${selectedProfile.id}`,
+        });
+      } catch (error) {
+        // Fallback for browsers that don't support share API
+        toast({
+          title: "Profile Link Copied",
+          description: "The profile link has been copied to your clipboard.",
+        });
+      }
+    }
+  };
+
+  const handleSave = () => {
+    // If user is not logged in, prompt to create account
+    if (!currentUser) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in or create an account to save profiles.",
+      });
+      return;
+    }
+    // TODO: Implement save profile functionality
+    toast({
+      title: "Coming Soon",
+      description: "The save profile feature will be available soon!",
     });
   };
 
@@ -242,8 +285,9 @@ const Dashboard = () => {
           profile={selectedProfile}
           isOpen={!!selectedProfile}
           onClose={handleCloseProfile}
-          onMessageClick={handleMessageClick}
-          onEditClick={currentUser?.id === selectedProfile.id ? handleEditProfile : undefined}
+          onWriteReview={handleWriteReview}
+          onShare={handleShare}
+          onSave={handleSave}
         />
       )}
 

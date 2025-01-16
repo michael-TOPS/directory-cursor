@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -42,11 +42,10 @@ const formSchema = z.object({
   avatarUrl: z.string().optional(),
 });
 
-const Profile = () => {
+const ProfileSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,53 +62,6 @@ const Profile = () => {
       avatarUrl: "",
     },
   });
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          navigate("/auth");
-          return;
-        }
-
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        if (error) throw error;
-
-        if (profile) {
-          form.reset({
-            name: profile.name || "",
-            description: profile.bio || "",
-            mobilePhone: profile.mobile_phone || "",
-            businessPhone: profile.business_phone || "",
-            company: profile.company || "",
-            website: profile.website || "",
-            stateLocated: profile.location || "",
-            statesLicensed: profile.licenses || [],
-            role: profile.role || "Appraiser",
-            avatarUrl: profile.avatar_url || "",
-          });
-        }
-      } catch (error) {
-        console.error("Error loading profile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load profile information.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, [navigate, form, toast]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -143,6 +95,8 @@ const Profile = () => {
         title: "Profile Updated",
         description: "Your profile has been successfully updated.",
       });
+
+      navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Error",
@@ -154,21 +108,13 @@ const Profile = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">Loading profile...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Your Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Complete Your Profile</h1>
           <p className="mt-2 text-gray-600">
-            Update your profile information and settings.
+            Please provide your information to complete your profile setup.
           </p>
         </div>
 
@@ -388,7 +334,7 @@ const Profile = () => {
               className="w-full"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Saving..." : "Save Changes"}
+              {isSubmitting ? "Saving..." : "Submit"}
             </Button>
           </form>
         </Form>
@@ -397,4 +343,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default ProfileSetup; 
