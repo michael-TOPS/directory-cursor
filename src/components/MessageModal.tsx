@@ -1,6 +1,11 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { PublicMessageForm } from "./PublicMessageForm";
 
 interface MessageModalProps {
@@ -18,14 +23,16 @@ export const MessageModal = ({
 }: MessageModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Send Message</DialogTitle>
         </DialogHeader>
-        <PublicMessageForm
-          recipientId={recipientId}
-          recipientName={recipientName}
-        />
+        <div className="mt-4">
+          <PublicMessageForm
+            recipientId={recipientId}
+            recipientName={recipientName}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

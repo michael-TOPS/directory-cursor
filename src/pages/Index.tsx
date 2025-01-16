@@ -6,90 +6,92 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
-interface Profile {
-  id: string;
-  name: string;
-  image_url?: string;
-  location?: string;
-  rating?: number;
-  role?: string;
-  specialties?: string[];
-  bio?: string;
-  certifications?: string[];
-  licenses?: string[];
-}
+// Mock data for development
+const MOCK_PROFILES = [
+  {
+    id: "1",
+    name: "Sarah Johnson",
+    location: "New York, NY",
+    rating: 4.8,
+    role: "Appraiser",
+    specialties: ["Residential", "Commercial"],
+    bio: "Experienced appraiser with over 10 years in the industry",
+  },
+  {
+    id: "2",
+    name: "Michael Chen",
+    location: "San Francisco, CA",
+    rating: 4.9,
+    role: "Both",
+    specialties: ["Real Estate", "Equipment"],
+    bio: "Specializing in commercial and residential properties",
+  },
+  {
+    id: "3",
+    name: "David Williams",
+    location: "Chicago, IL",
+    rating: 4.7,
+    role: "Umpire",
+    specialties: ["Insurance", "Property Damage"],
+    bio: "Expert in insurance claim disputes",
+  },
+];
 
 const Index = () => {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const [profiles, setProfiles] = useState(MOCK_PROFILES);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setProfiles(data || []);
-      } catch (error) {
-        console.error('Error fetching profiles:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load profiles. Please try again later.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProfiles();
-  }, [toast]);
-
-  const handleSearch = async (term: string) => {
-    setIsLoading(true);
-    try {
-      let query = supabase.from('profiles').select('*');
-
-      if (term) {
-        query = query.or(
-          `name.ilike.%${term}%,` +
-          `location.ilike.%${term}%,` +
-          `role.ilike.%${term}%,` +
-          `specialties.cs.{${term}},` +
-          `bio.ilike.%${term}%`
-        );
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setProfiles(data || []);
-    } catch (error) {
-      console.error('Error searching profiles:', error);
-      toast({
-        title: "Error",
-        description: "Failed to search profiles. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
+    // Simulate loading delay
+    const timer = setTimeout(() => {
       setIsLoading(false);
-    }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleLoginClick = () => {
+    navigate('/login');
   };
 
-  const handleProfileClick = (profile: Profile) => {
+  const handleSearch = (term: string) => {
+    if (!term.trim()) {
+      setProfiles(MOCK_PROFILES);
+      return;
+    }
+
+    const filtered = MOCK_PROFILES.filter(profile => 
+      Object.values(profile).some(value => 
+        String(value).toLowerCase().includes(term.toLowerCase())
+      )
+    );
+    setProfiles(filtered);
+  };
+
+  const handleProfileClick = (profile: any) => {
     navigate(`/profile/${profile.id}`);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Header with Login Button */}
+      <div className="container max-w-3xl py-4">
+        <div className="flex justify-end">
+          <Button 
+            variant="outline" 
+            onClick={handleLoginClick}
+            className="font-semibold"
+          >
+            Login
+          </Button>
+        </div>
+      </div>
+
       {/* Hero Section */}
-      <div className="container py-16 text-center">
+      <div className="container max-w-3xl py-12 text-center">
         <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800">
           Find Expert Appraisers & Umpires
         </h1>
@@ -99,14 +101,14 @@ const Index = () => {
         <SearchBar onSearch={handleSearch} />
       </div>
 
-      {/* Directory Grid */}
-      <div className="container pb-16">
+      {/* Directory List */}
+      <div className="container max-w-3xl pb-16">
         {isLoading ? (
           <div className="flex justify-center items-center min-h-[200px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="space-y-4">
             {profiles.map((profile) => (
               <ProfileCard
                 key={profile.id}
@@ -115,7 +117,7 @@ const Index = () => {
               />
             ))}
             {profiles.length === 0 && (
-              <div className="col-span-full text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500">
                 No profiles found. Try adjusting your search.
               </div>
             )}
